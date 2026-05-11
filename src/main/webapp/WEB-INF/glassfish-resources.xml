@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE resources PUBLIC
+    "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN"
+    "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+<resources>
+    <!--
+        Pool de connexions Derby EMBARQUÉ.
+        La base est créée automatiquement dans le répertoire de GlassFish.
+        Pas besoin de démarrer un serveur Derby séparé.
+    -->
+    <jdbc-connection-pool
+            name          = "HissabDerbyPool"
+            res-type      = "javax.sql.DataSource"
+            datasource-classname = "org.apache.derby.jdbc.EmbeddedDataSource"
+            pool-resize-quantity = "2"
+            steady-pool-size     = "2"
+            max-pool-size        = "10">
+
+        <!-- Nom de la base Derby (créée si elle n'existe pas) -->
+        <property name="DatabaseName" value="hissabDB"/>
+        <property name="CreateDatabase" value="create"/>
+    </jdbc-connection-pool>
+
+    <!-- Resource JNDI référencée dans persistence.xml -->
+    <jdbc-resource
+            pool-name = "HissabDerbyPool"
+            jndi-name = "jdbc/hissabDS"/>
+</resources>

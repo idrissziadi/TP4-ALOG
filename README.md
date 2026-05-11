@@ -1,6 +1,6 @@
 # HISSAB — Document de Conception (Spec)
 
-**Date :** 2026-05-08  
+**Date :** 2026-05-11  
 **Auteurs :** Ziadi, Boukakiou  
 **Module :** SIQ1 — Architecture Logicielle (LAB4)  
 **Version :** 2.0 (corrigée après review approfondie)

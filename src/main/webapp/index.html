@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HISSAB — Vérificateur de Calculs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ── Variables ─────────────────────────────────────────── */
+        :root {
+            --bg:        #1c2333;
+            --surface:   #242d3f;
+            --surface2:  #2d3852;
+            --border:    #3a4660;
+            --text:      #e8e0d0;
+            --muted:     #8a95aa;
+            --accent:    #f5c842;
+            --accent2:   #f0a832;
+            --green:     #4ade80;
+            --red:       #f87171;
+            --mono:      'DM Mono', monospace;
+            --sans:      'DM Sans', sans-serif;
+            --display:   'Caveat', cursive;
+        }
+
+        /* ── Reset ─────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Body — quadrillage façon papier millimétré ────────── */
+        body {
+            font-family: var(--sans);
+            background-color: var(--bg);
+            background-image:
+                linear-gradient(rgba(245,200,66,.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(245,200,66,.04) 1px, transparent 1px);
+            background-size: 32px 32px;
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px 80px;
+        }
+
+        /* ── En-tête ───────────────────────────────────────────── */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: slideDown .5s ease both;
+        }
+
+        .logo-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: var(--accent);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: 0 4px 20px rgba(245,200,66,.35);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-family: var(--display);
+            font-size: 3.4rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-family: var(--sans);
+            font-size: .85rem;
+            font-weight: 300;
+            color: var(--muted);
+            letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+
+        /* ── Carte principale ──────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            width: 100%;
+            max-width: 660px;
+            box-shadow: 0 24px 64px rgba(0,0,0,.4);
+            animation: slideUp .5s .1s ease both;
+        }
+
+        /* ── Label de section ──────────────────────────────────── */
+        .label {
+            font-family: var(--mono);
+            font-size: .72rem;
+            color: var(--accent);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .label::before {
+            content: '';
+            display: inline-block;
+            width: 6px; height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        /* ── Zone upload ───────────────────────────────────────── */
+        .upload-zone {
+            border: 1.5px dashed var(--border);
+            border-radius: 14px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: border-color .2s, background .2s;
+            margin-bottom: 24px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(245,200,66,.04);
+        }
+
+        .upload-zone.has-file {
+            border-color: var(--green);
+            background: rgba(74,222,128,.05);
+        }
+
+        .upload-zone input {
+            position: absolute; inset: 0;
+            opacity: 0; cursor: pointer; width: 100%;
+        }
+
+        .upload-icon-svg {
+            margin: 0 auto 12px;
+            width: 40px; height: 40px;
+            opacity: .5;
+            transition: opacity .2s;
+        }
+
+        .upload-zone:hover .upload-icon-svg { opacity: 1; }
+
+        /* Masquer l'icône SVG quand une prévisualisation est affichée */
+        .upload-zone.has-file .upload-icon-svg { display: none; }
+
+        /* Prévisualisation de l'image uploadée */
+        .file-preview {
+            max-width: 240px;
+            max-height: 120px;
+            border-radius: 10px;
+            margin: 0 auto 10px;
+            display: block;
+            object-fit: contain;
+            border: 1.5px solid rgba(74,222,128,.35);
+            box-shadow: 0 4px 16px rgba(0,0,0,.35);
+            pointer-events: none;   /* clics passent à travers vers l'input */
+        }
+
+        .upload-text {
+            font-family: var(--sans);
+            font-size: .9rem;
+            color: var(--muted);
+        }
+
+        .upload-text strong { color: var(--text); font-weight: 500; }
+        .upload-text .formats { font-size: .75rem; margin-top: 4px; opacity: .6; }
+
+        /* ── Séparateur ────────────────────────────────────────── */
+        .separator {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 0 0 24px;
+        }
+
+        .separator::before,
+        .separator::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .separator span {
+            font-family: var(--mono);
+            font-size: .72rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* ── Champ expression ──────────────────────────────────── */
+        .expression-field {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .expression-field input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: var(--mono);
+            font-size: 1.15rem;
+            color: var(--text);
+            transition: border-color .2s;
+            letter-spacing: .5px;
+        }
+
+        .expression-field input::placeholder { color: var(--muted); opacity: .5; }
+
+        .expression-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245,200,66,.1);
+        }
+
+        /* ── Bouton ────────────────────────────────────────────── */
+        .btn-verifier {
+            width: 100%;
+            padding: 17px;
+            background: var(--accent);
+            color: #1c2333;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--sans);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: .5px;
+            cursor: pointer;
+            transition: background .15s, transform .1s, box-shadow .15s;
+            box-shadow: 0 4px 20px rgba(245,200,66,.3);
+        }
+
+        .btn-verifier:hover {
+            background: var(--accent2);
+            box-shadow: 0 6px 28px rgba(245,200,66,.45);
+        }
+
+        .btn-verifier:active  { transform: scale(.98); }
+        .btn-verifier:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+
+        /* ── Résultat ──────────────────────────────────────────── */
+        .resultat-box {
+            display: none;
+            margin-top: 28px;
+            padding: 28px;
+            border-radius: 16px;
+            animation: popIn .35s cubic-bezier(.34,1.56,.64,1) both;
+        }
+
+        .resultat-box.succes {
+            background: rgba(74,222,128,.07);
+            border: 1.5px solid rgba(74,222,128,.3);
+        }
+
+        .resultat-box.erreur {
+            background: rgba(248,113,113,.07);
+            border: 1.5px solid rgba(248,113,113,.3);
+        }
+
+        .resultat-label {
+            font-family: var(--mono);
+            font-size: .72rem;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .resultat-expression-text {
+            font-family: var(--mono);
+            font-size: 1rem;
+            color: var(--text);
+            margin-bottom: 16px;
+            opacity: .8;
+        }
+
+        .resultat-grand {
+            font-family: var(--display);
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--green);
+            line-height: 1;
+        }
+
+        .resultat-erreur-msg {
+            font-family: var(--sans);
+            font-size: .95rem;
+            color: var(--red);
+        }
+
+        /* ── Historique ────────────────────────────────────────── */
+        .historique-section {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 660px;
+            animation: slideUp .5s .2s ease both;
+        }
+
+        .hist-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        /* Conteneur — block, pas flex, pour que le tableau respire */
+        .hist-list {
+            display: block;
+        }
+
+        /* Wrapper avec fond, bordure, coins arrondis */
+        .hist-table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        /* Table elle-même */
+        .hist-table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        /* En-tête */
+        .hist-table-wrap thead tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hist-table-wrap thead th {
+            font-family: var(--mono);
+            font-size: .62rem;
+            color: var(--muted);
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            font-weight: 400;
+            padding: 14px 18px;
+            text-align: left;
+        }
+
+        .hist-table-wrap thead th.col-num  { width: 52px;  text-align: center; }
+        .hist-table-wrap thead th.col-expr { }
+        .hist-table-wrap thead th.col-res  { width: 130px; text-align: right; }
+        .hist-table-wrap thead th.col-date { width: 158px; text-align: right; }
+
+        /* Lignes */
+        .hist-table-wrap tbody tr {
+            border-bottom: 1px solid rgba(58,70,96,.4);
+            transition: background .15s;
+        }
+
+        .hist-table-wrap tbody tr:last-child { border-bottom: none; }
+
+        .hist-table-wrap tbody tr:hover {
+            background: rgba(245,200,66,.045);
+        }
+
+        .hist-table-wrap tbody td {
+            padding: 14px 18px;
+            vertical-align: middle;
+        }
+
+        /* Colonne # — cercle numéroté */
+        .hist-table-wrap tbody td.col-num {
+            text-align: center;
+        }
+
+        .row-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--surface2);
+            font-family: var(--mono);
+            font-size: .68rem;
+            color: var(--muted);
+        }
+
+        /* Colonne expression */
+        .hist-table-wrap tbody td.col-expr {
+            font-family: var(--mono);
+            font-size: .9rem;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Colonne résultat */
+        .hist-table-wrap tbody td.col-res {
+            text-align: right;
+        }
+
+        .badge-resultat {
+            display: inline-block;
+            background: rgba(245,200,66,.1);
+            color: var(--accent);
+            border: 1px solid rgba(245,200,66,.22);
+            border-radius: 8px;
+            padding: 4px 11px;
+            font-family: var(--display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: .3px;
+            transition: background .15s, box-shadow .15s;
+        }
+
+        .hist-table-wrap tbody tr:hover .badge-resultat {
+            background: rgba(245,200,66,.17);
+            box-shadow: 0 2px 10px rgba(245,200,66,.15);
+        }
+
+        /* Colonne date */
+        .hist-table-wrap tbody td.col-date {
+            font-family: var(--mono);
+            font-size: .7rem;
+            color: var(--muted);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* État vide / message */
+        .empty-msg {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: .85rem;
+            letter-spacing: .5px;
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+        }
+
+        /* ── Animations ────────────────────────────────────────── */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(.94); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* ── Spinner ───────────────────────────────────────────── */
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(28,35,51,.3);
+            border-top-color: #1c2333;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- En-tête -->
+    <header>
+        <div class="logo-line">
+            <div class="logo-icon">🧮</div>
+            <h1>HISSAB</h1>
+        </div>
+        <p class="subtitle">Vérificateur de calculs — Architecture JEE / EJB</p>
+    </header>
+
+    <!-- Carte principale -->
+    <div class="card">
+
+        <!-- Upload -->
+        <div class="label">Image ou PDF</div>
+        <div class="upload-zone" id="uploadZone">
+            <svg class="upload-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="#e8e0d0">
+                <path d="M12 16V4m0 0L8 8m4-4 4 4"/>
+                <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+            </svg>
+            <div class="upload-text">
+                <strong id="uploadLabel">Déposer un fichier ou cliquer pour parcourir</strong>
+                <div class="formats">PNG · JPG · PDF</div>
+            </div>
+            <input type="file" id="fichierInput" accept="image/*,.pdf" onchange="fichierChoisi(this)">
+        </div>
+
+        <!-- Séparateur -->
+        <div class="separator"><span>ou saisir l'expression</span></div>
+
+        <!-- Champ texte -->
+        <div class="expression-field">
+            <div class="label">Expression mathématique</div>
+            <input type="text" id="expressionInput"
+                   placeholder="5 + 2 * 6 - 3"
+                   onkeypress="if(event.key==='Enter') verifier()">
+        </div>
+
+        <!-- Bouton -->
+        <button class="btn-verifier" id="btnVerifier" onclick="verifier()">
+            Vérifier le calcul
+        </button>
+
+        <!-- Résultat -->
+        <div class="resultat-box" id="resultatBox">
+            <div class="resultat-label" id="resultatLabel">Résultat</div>
+            <div class="resultat-expression-text" id="resultatExpression"></div>
+            <div class="resultat-grand"     id="resultatValeur"></div>
+            <div class="resultat-erreur-msg" id="resultatErreur"></div>
+        </div>
+    </div>
+
+    <!-- Historique -->
+    <section class="historique-section">
+        <div class="hist-header">
+            <div class="label">Historique des calculs</div>
+        </div>
+        <div class="hist-list" id="historiqueContainer">
+            <div class="hist-empty">Chargement de l'historique…</div>
+        </div>
+    </section>
+
+<script src="hissab.js"></script>
+</body>
+</html>

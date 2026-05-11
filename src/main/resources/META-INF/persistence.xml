@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
+             https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <persistence-unit name="hissabPU" transaction-type="JTA">
+        <jta-data-source>jdbc/hissabDS</jta-data-source>
+        <class>hissab.ejb.CalculHistorique</class>
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+        <properties>
+            <!-- EclipseLink (provider JPA de GlassFish 7) — PAS Hibernate -->
+            <!-- create-tables : crée la table si elle n'existe pas, sans effacer les données -->
+            <property name="eclipselink.ddl-generation"             value="create-tables"/>
+            <property name="eclipselink.ddl-generation.output-mode" value="database"/>
+            <property name="eclipselink.logging.level"              value="WARNING"/>
+            <property name="eclipselink.logging.level.sql"          value="WARNING"/>
+        </properties>
+    </persistence-unit>
+</persistence>
