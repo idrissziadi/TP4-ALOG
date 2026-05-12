@@ -1,7 +1,7 @@
 package hissab.web;
 
 import hissab.ejb.CalculHistorique;
-import hissab.ejb.ICalcLocal;
+import hissab.ejb.ICalcRemote;
 import hissab.ejb.IHistoriqueLocal;
 
 import jakarta.ejb.EJB;
@@ -29,7 +29,7 @@ import java.util.List;
 public class HissabRestService {
 
     @EJB
-    private ICalcLocal calc;
+    private ICalcRemote calc;
 
     @EJB
     private IHistoriqueLocal historique;

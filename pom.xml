@@ -6,10 +6,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>hissab</groupId>
-    <artifactId>HISSAB</artifactId>
+    <artifactId>HISSAB-root</artifactId>
     <version>1.0</version>
-    <packaging>war</packaging>
-    <name>HISSAB - Vérificateur de calculs</name>
+    <packaging>pom</packaging>
+    <name>HISSAB - Parent POM</name>
+
+    <modules>
+        <module>calc-ejb</module>
+        <module>hissab-war</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -17,34 +22,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <!-- Jakarta EE 10 — fourni par GlassFish 7, ne pas embarquer dans le WAR -->
-        <dependency>
-            <groupId>jakarta.platform</groupId>
-            <artifactId>jakarta.jakartaee-api</artifactId>
-            <version>10.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- exp4j : évaluation d'expressions mathématiques infixes (5+2*6-3) -->
-        <dependency>
-            <groupId>net.objecthunter</groupId>
-            <artifactId>exp4j</artifactId>
-            <version>0.4.8</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.4.0</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                    <warName>HISSAB</warName>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-api</artifactId>
+                <version>10.0.0</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
