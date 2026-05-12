@@ -1,5 +1,8 @@
 // HISSAB — Logique JavaScript côté client
-const API_BASE = 'api/hissab';
+const API_BASE   = 'api/hissab';
+const PAGE_SIZE  = 10;
+let   histData   = [];
+let   currentPage = 1;
 
 // Chargement de l'historique au démarrage
 document.addEventListener('DOMContentLoaded', chargerHistorique);
@@ -24,8 +27,7 @@ function fichierChoisi(input) {
             img.className = 'file-preview';
             const url = URL.createObjectURL(file);
             img.src = url;
-            img.onload = () => URL.revokeObjectURL(url);   // libérer la mémoire
-            // Insérer avant le label de texte pour apparaître en haut de la zone
+            img.onload = () => URL.revokeObjectURL(url);
             zone.insertBefore(img, zone.querySelector('.upload-text'));
         }
     } else {
@@ -80,7 +82,6 @@ function afficherSucces(expression, resultat) {
     const valElem  = document.getElementById('resultatValeur');
     const errElem  = document.getElementById('resultatErreur');
 
-    // Arrondir à 6 décimales max, supprimer les zéros inutiles
     const valFormatee = parseFloat(resultat.toFixed(6)).toString();
 
     box.className          = 'resultat-box succes';
@@ -114,11 +115,31 @@ async function chargerHistorique() {
         const data     = await response.json();
 
         if (!data || data.length === 0) {
+            histData = [];
             container.innerHTML = '<p class="empty-msg">Aucun calcul enregistré.</p>';
+            document.getElementById('paginationContainer').innerHTML = '';
             return;
         }
 
-        let html = `<div class="hist-table-wrap">
+        histData = data;
+        currentPage = 1;
+        renderPage(1);
+
+    } catch (err) {
+        container.innerHTML = '<p class="empty-msg">Impossible de charger l\'historique.</p>';
+    }
+}
+
+function renderPage(page) {
+    currentPage = page;
+    const container  = document.getElementById('historiqueContainer');
+    const total      = histData.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const start      = (page - 1) * PAGE_SIZE;
+    const end        = Math.min(start + PAGE_SIZE, total);
+    const slice      = histData.slice(start, end);
+
+    let html = `<div class="hist-table-wrap">
             <table>
                 <thead>
                     <tr>
@@ -130,27 +151,44 @@ async function chargerHistorique() {
                 </thead>
                 <tbody>`;
 
-        data.forEach((item, index) => {
-            // MOXy (GlassFish) ajoute "[UTC]" non reconnu par JS → on le retire
-            const rawDate  = item.dateCalcul ? item.dateCalcul.replace(/\[.*?\]$/, '') : null;
-            const date     = rawDate ? new Date(rawDate).toLocaleString('fr-FR') : '—';
-            const resultat = parseFloat(item.resultat.toFixed(6)).toString();
-            const delay    = index * 35;
+    slice.forEach((item, idx) => {
+        // MOXy (GlassFish) ajoute "[UTC]" non reconnu par JS → on le retire
+        const rawDate   = item.dateCalcul ? item.dateCalcul.replace(/\[.*?\]$/, '') : null;
+        const date      = rawDate ? new Date(rawDate).toLocaleString('fr-FR') : '—';
+        const resultat  = parseFloat(item.resultat.toFixed(6)).toString();
+        const globalNum = start + idx + 1;
+        const delay     = idx * 35;
 
-            html += `<tr style="animation: slideUp .3s ${delay}ms ease both">
-                        <td class="col-num"><span class="row-num">${index + 1}</span></td>
-                        <td class="col-expr" title="${escapeHtml(item.expression)}">${escapeHtml(item.expression)}</td>
-                        <td class="col-res"><span class="badge-resultat">${resultat}</span></td>
-                        <td class="col-date">${date}</td>
-                    </tr>`;
-        });
+        html += `<tr style="animation: slideUp .3s ${delay}ms ease both">
+                    <td class="col-num"><span class="row-num">${globalNum}</span></td>
+                    <td class="col-expr" title="${escapeHtml(item.expression)}">${escapeHtml(item.expression)}</td>
+                    <td class="col-res"><span class="badge-resultat">${resultat}</span></td>
+                    <td class="col-date">${date}</td>
+                </tr>`;
+    });
 
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
 
-    } catch (err) {
-        container.innerHTML = '<p class="empty-msg">Impossible de charger l\'historique.</p>';
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const nav = document.getElementById('paginationContainer');
+
+    if (totalPages <= 1) {
+        nav.innerHTML = '';
+        return;
     }
+
+    const hasPrev = currentPage > 1;
+    const hasNext = currentPage < totalPages;
+
+    nav.innerHTML = `<div class="pagination">
+        <button class="pg-btn" onclick="renderPage(${currentPage - 1})" ${hasPrev ? '' : 'disabled'}>← Préc</button>
+        <span class="pg-info">${currentPage} <span class="pg-sep">/</span> ${totalPages}</span>
+        <button class="pg-btn" onclick="renderPage(${currentPage + 1})" ${hasNext ? '' : 'disabled'}>Suiv →</button>
+    </div>`;
 }
 
 function escapeHtml(text) {
