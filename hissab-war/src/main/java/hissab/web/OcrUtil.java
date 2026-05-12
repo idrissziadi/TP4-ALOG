@@ -39,7 +39,8 @@ public class OcrUtil {
                         + "&language=eng"
                         + "&isOverlayRequired=false"
                         + "&detectOrientation=true"
-                        + "&scale=true";
+                        + "&scale=true"
+                        + "&OCREngine=2";
 
             // Le truststore GlassFish ne contient pas le CA de api.ocr.space.
             // On désactive la validation SSL (acceptable en environnement de démo).
@@ -135,6 +136,7 @@ public class OcrUtil {
                 .replace("−", "-")
                 .replace("–", "-")
                 .replace("x", "*")
+                .replace("X", "*")
                 .replaceAll("[^0-9+\\-*/().\\s]", "")
                 .replaceAll("\\s+", " ")
                 .trim();
