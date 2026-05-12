@@ -32,6 +32,10 @@
                 <configuration>
                     <ejbVersion>3.2</ejbVersion>
                     <generateClient>true</generateClient>
+                    <!-- Exclure l'implémentation EJB du client JAR — seule l'interface est nécessaire -->
+                    <clientExcludes>
+                        <clientExclude>calculator/Calculator.class</clientExclude>
+                    </clientExcludes>
                 </configuration>
             </plugin>
         </plugins>

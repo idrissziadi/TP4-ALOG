@@ -13,7 +13,7 @@
         <properties>
             <!-- EclipseLink (provider JPA de GlassFish 7) — PAS Hibernate -->
             <!-- create-tables : crée la table si elle n'existe pas, sans effacer les données -->
-            <property name="eclipselink.ddl-generation"             value="create-tables"/>
+            <property name="eclipselink.ddl-generation"             value="create-or-extend-tables"/>
             <property name="eclipselink.ddl-generation.output-mode" value="database"/>
             <property name="eclipselink.logging.level"              value="WARNING"/>
             <property name="eclipselink.logging.level.sql"          value="WARNING"/>

@@ -4,29 +4,47 @@ import calculator.interpreter.Evaluator;
 import calculator.interpreter.Expression;
 import calculator.interpreter.NumberLiteral;
 
+import jakarta.ejb.Stateless;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Composant CALCULATEUR (TD2).
- * Réalise les opérations arithmétiques élémentaires.
- * Réutilise le pattern Interpreter (TD2) via l'Evaluator étendu.
- */
+@Stateless
 public class Calculator implements ICalculator {
 
     @Override
-    public int sum(int a, int b) {
+    public double sum(double a, double b) {
         Map<String, Expression> ctx = Map.of(
             "a", new NumberLiteral(a),
             "b", new NumberLiteral(b)
         );
-        Evaluator eval = new Evaluator("a b +");
-        return (int) eval.interpret(ctx);
+        return new Evaluator("a b +").interpret(ctx);
     }
 
     @Override
-    public int product(int a, int b) {
-        return a * b;
+    public double minus(double a, double b) {
+        Map<String, Expression> ctx = Map.of(
+            "a", new NumberLiteral(a),
+            "b", new NumberLiteral(b)
+        );
+        return new Evaluator("a b -").interpret(ctx);
+    }
+
+    @Override
+    public double product(double a, double b) {
+        Map<String, Expression> ctx = Map.of(
+            "a", new NumberLiteral(a),
+            "b", new NumberLiteral(b)
+        );
+        return new Evaluator("a b *").interpret(ctx);
+    }
+
+    @Override
+    public double divide(double a, double b) {
+        Map<String, Expression> ctx = Map.of(
+            "a", new NumberLiteral(a),
+            "b", new NumberLiteral(b)
+        );
+        return new Evaluator("a b /").interpret(ctx);
     }
 
     @Override

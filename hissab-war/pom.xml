@@ -21,13 +21,13 @@
             <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- Interface @Remote du composant CALC (le JAR EJB est déployé séparément) -->
+        <!-- Interface @Remote du composant CALC — bundlé dans WEB-INF/lib pour que
+             GlassFish puisse charger ICalculator au déploiement du WAR -->
         <dependency>
             <groupId>hissab</groupId>
             <artifactId>calc-ejb</artifactId>
             <version>1.0</version>
             <classifier>client</classifier>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

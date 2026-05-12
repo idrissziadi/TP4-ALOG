@@ -1,4 +1,4 @@
-package calculator.interpreter;
+package hissab.ejb;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,16 +23,8 @@ public class InfixToPostfixConverter {
         return s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/");
     }
 
-    /**
-     * Convertit une expression infixe en postfixe.
-     *
-     * @param infix expression infixe normalisée (opérateurs ASCII, espaces optionnels)
-     * @return expression postfixe avec tokens séparés par des espaces
-     * @throws IllegalArgumentException si l'expression contient un token inconnu
-     *                                  ou des parenthèses non équilibrées
-     */
     public String convert(String infix) {
-        List<String> output  = new ArrayList<>();
+        List<String> output   = new ArrayList<>();
         Stack<String> opStack = new Stack<>();
 
         List<String> tokens = tokenize(infix);

@@ -1,7 +1,7 @@
 package hissab.web;
 
 import hissab.ejb.CalculHistorique;
-import hissab.ejb.ICalcRemote;
+import hissab.ejb.IHissabExpressionLocal;
 import hissab.ejb.IHistoriqueLocal;
 
 import jakarta.ejb.EJB;
@@ -20,24 +20,17 @@ import java.util.List;
  * Service REST HISSAB — deux endpoints :
  *   POST /api/hissab/calculer   → reçoit image ou texte, retourne résultat
  *   GET  /api/hissab/historique → retourne la liste des calculs
- *
- * Multipart géré via l'API standard JAX-RS 3.1 (EntityPart),
- * incluse dans jakarta.jakartaee-api:10.0.0 — aucune dépendance Jersey spécifique.
  */
 @Path("/hissab")
 @RequestScoped
 public class HissabRestService {
 
     @EJB
-    private ICalcRemote calc;
+    private IHissabExpressionLocal expressionEJB;
 
     @EJB
     private IHistoriqueLocal historique;
 
-    /**
-     * Endpoint 1 : calculer une expression.
-     * Accepte soit un fichier image/PDF (OCR), soit du texte directement.
-     */
     @POST
     @Path("/calculer")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -64,23 +57,20 @@ public class HissabRestService {
         String expression = null;
         String ocrErreur  = null;
 
-        // Étape 1 : OCR si fichier fourni
         if (fichierBytes != null) {
             try {
                 expression = OcrUtil.extraireTexte(fichierBytes);
             } catch (RuntimeException e) {
-                ocrErreur = e.getMessage();   // message descriptif transmis au client
+                ocrErreur = e.getMessage();
             }
         }
 
-        // Étape 2 : fallback sur la saisie manuelle
         if ((expression == null || expression.isBlank()) &&
                 expressionTexte != null && !expressionTexte.isBlank()) {
             expression = expressionTexte.trim();
-            ocrErreur  = null;   // la saisie manuelle a réussi, pas d'erreur à montrer
+            ocrErreur  = null;
         }
 
-        // Étape 3 : rien du tout → 400 avec raison OCR si disponible
         if (expression == null || expression.isBlank()) {
             String msg = (ocrErreur != null)
                     ? "OCR échoué — " + ocrErreur + ". Saisissez l'expression manuellement."
@@ -90,11 +80,9 @@ public class HissabRestService {
                     .build();
         }
 
-        // Étape 4 : évaluer via CalcEJB
-        // EJB wraps RuntimeExceptions in EJBException — on unwrappe pour avoir le vrai message.
         double resultat;
         try {
-            resultat = calc.evaluerExpression(expression);
+            resultat = expressionEJB.evaluerExpression(expression);
         } catch (EJBException | IllegalArgumentException ex) {
             Throwable cause = ex;
             while (cause.getCause() != null) cause = cause.getCause();
@@ -103,14 +91,10 @@ public class HissabRestService {
                     .build();
         }
 
-        // Étape 5 : persister + répondre
         historique.sauvegarder(expression, resultat);
         return Response.ok(ResultatDTO.ok(expression, resultat)).build();
     }
 
-    /**
-     * Endpoint 2 : récupérer l'historique des calculs.
-     */
     @GET
     @Path("/historique")
     @Produces(MediaType.APPLICATION_JSON)
